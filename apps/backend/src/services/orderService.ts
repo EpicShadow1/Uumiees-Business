@@ -1,11 +1,11 @@
 import { pool, executeWithRetry } from '../config/database';
-import { CreateOrder, OrderResponse } from '../models';
+import { CreateOrder, Order, OrderResponse } from '../models';
 import { productService } from './productService';
 import { discountService } from './discountService';
 import { orderTrackingService } from './orderTrackingService';
 
 class OrderService {
-  async create(orderData: CreateOrder): Promise<OrderResponse> {
+  async create(orderData: CreateOrder): Promise<Order> {
     const { user_id, items, shipping_address, billing_address, notes, discount_code } = orderData;
 
     return executeWithRetry(async () => {
@@ -119,7 +119,7 @@ class OrderService {
     });
   }
 
-  async findById(id: number): Promise<OrderResponse | null> {
+  async findById(id: number): Promise<Order | null> {
     return executeWithRetry(async () => {
       const orderResult = await pool.query(
         `SELECT id, user_id, order_number, subtotal, tax, shipping, discount, total, status, payment_status, payment_method, payment_id, shipping_address, billing_address, notes, created_at, updated_at 
@@ -156,7 +156,7 @@ class OrderService {
     });
   }
 
-  async findByUserId(userId: number, limit = 100, offset = 0): Promise<OrderResponse[]> {
+  async findByUserId(userId: number, limit = 100, offset = 0): Promise<Order[]> {
     return executeWithRetry(async () => {
       const orderResult = await pool.query(
         `SELECT id, user_id, order_number, subtotal, tax, shipping, discount, total, status, payment_status, shipping_address, billing_address, notes, created_at, updated_at 
@@ -170,7 +170,7 @@ class OrderService {
       const orders = orderResult.rows;
 
       // Get items for each order
-      const ordersWithItems: OrderResponse[] = [];
+      const ordersWithItems: Order[] = [];
       for (const order of orders) {
         const itemsResult = await pool.query(
           `SELECT oi.id, oi.product_id, oi.variant_id, oi.quantity, oi.price, oi.product_name, oi.variant_name
@@ -196,7 +196,7 @@ class OrderService {
     });
   }
 
-  async updateStatus(id: number, status: string): Promise<OrderResponse | null> {
+  async updateStatus(id: number, status: string): Promise<Order | null> {
     const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
     
     if (!validStatuses.includes(status)) {
@@ -227,7 +227,7 @@ class OrderService {
     });
   }
 
-  async cancelOrder(id: number): Promise<OrderResponse | null> {
+  async cancelOrder(id: number): Promise<Order | null> {
     return executeWithRetry(async () => {
       const client = await pool.connect();
 
@@ -294,7 +294,7 @@ class OrderService {
     });
   }
 
-  async getAll(limit = 100, offset = 0): Promise<OrderResponse[]> {
+  async getAll(limit = 100, offset = 0): Promise<Order[]> {
     return executeWithRetry(async () => {
       const orderResult = await pool.query(
         `SELECT id, user_id, order_number, subtotal, tax, shipping, discount, total, status, payment_status, shipping_address, billing_address, notes, created_at, updated_at 
@@ -307,7 +307,7 @@ class OrderService {
       const orders = orderResult.rows;
 
       // Get items for each order
-      const ordersWithItems: OrderResponse[] = [];
+      const ordersWithItems: Order[] = [];
       for (const order of orders) {
         const itemsResult = await pool.query(
           `SELECT oi.id, oi.product_id, oi.variant_id, oi.quantity, oi.price, oi.product_name, oi.variant_name

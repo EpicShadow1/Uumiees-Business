@@ -10,6 +10,7 @@ import type {
   CartItem,
   ShoppingCart,
   Order,
+  OrderResponse,
   OrderTracking,
   WishlistItem,
   Discount,
@@ -206,8 +207,8 @@ export class ApiClient {
     billing_address: string;
     notes?: string;
     discount_code?: string;
-  }): Promise<Order> {
-    const response = await this.client.post<Order>('/api/orders', data);
+  }): Promise<OrderResponse> {
+    const response = await this.client.post<OrderResponse>('/api/orders', data);
     return response.data;
   }
 

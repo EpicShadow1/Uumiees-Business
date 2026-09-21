@@ -39,11 +39,10 @@ export default function ProfileScreen() {
   };
 
   const menuItems = [
-    { title: 'My Orders', icon: '📦', onPress: () => {} },
-    { title: 'My Addresses', icon: '📍', onPress: () => {} },
-    { title: 'Payment Methods', icon: '💳', onPress: () => {} },
-    { title: 'Support', icon: '💬', onPress: () => {} },
-    { title: 'Settings', icon: '⚙️', onPress: () => {} },
+    { title: 'My Account', icon: '👤', onPress: () => router.push('/account') },
+    { title: 'My Orders', icon: '📦', onPress: () => router.push('/orders') },
+    { title: 'Support', icon: '💬', onPress: () => router.push('/help') },
+    { title: 'Settings', icon: '⚙️', onPress: () => void 0 },
   ];
 
   return (

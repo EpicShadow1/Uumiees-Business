@@ -360,7 +360,10 @@ export interface CreateOrder {
   discount_code?: string;
 }
 
-export interface OrderResponse extends Order {}
+export interface OrderResponse {
+  message: string;
+  order: Order;
+}
 
 // Wishlist Types (matching backend models/Wishlist.ts)
 export interface WishlistItem {

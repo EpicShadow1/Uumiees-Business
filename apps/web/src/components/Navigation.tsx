@@ -26,6 +26,7 @@ export default function Navigation() {
     { href: '/products', label: 'Products' },
     { href: '/categories', label: 'Categories' },
     { href: '/about', label: 'About' },
+    { href: '/help', label: 'Help' },
   ];
 
   return (
@@ -58,9 +59,9 @@ export default function Navigation() {
 
           {/* Right side icons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="p-2 text-[#171A21] hover:text-[#173B8F] transition">
+            <Link href="/search" className="p-2 text-[#171A21] hover:text-[#173B8F] transition">
               <Search size={20} />
-            </button>
+            </Link>
             <Link href="/cart" className="p-2 text-[#171A21] hover:text-[#173B8F] transition relative">
               <ShoppingCart size={20} />
               <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -79,7 +80,7 @@ export default function Navigation() {
                   <Link href="/orders" className="block px-4 py-2 text-sm text-[#171A21] hover:bg-gray-100">
                     My Orders
                   </Link>
-                  <Link href="/wishlist" className="block px-4 py-2 text-sm text-[#171A21] hover:bg-gray-100">
+                  <Link href="/favorites" className="block px-4 py-2 text-sm text-[#171A21] hover:bg-gray-100">
                     Wishlist
                   </Link>
                   <hr className="my-2" />
@@ -129,9 +130,9 @@ export default function Navigation() {
             ))}
             <hr className="my-2" />
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-[#171A21]">
+              <Link href="/search" className="p-2 text-[#171A21]">
                 <Search size={20} />
-              </button>
+              </Link>
               <Link href="/cart" className="p-2 text-[#171A21]">
                 <ShoppingCart size={20} />
               </Link>

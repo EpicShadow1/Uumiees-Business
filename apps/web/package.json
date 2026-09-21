@@ -11,7 +11,11 @@
   },
   "dependencies": {
     "@uumiees/api": "workspace:*",
+    "@uumiees/config": "workspace:*",
     "@uumiees/types": "workspace:*",
+    "@uumiees/ui": "workspace:*",
+    "@uumiees/utils": "workspace:*",
+    "@uumiees/validation": "workspace:*",
     "@tanstack/react-query": "^5.0.0",
     "next": "^14.0.0",
     "react": "^18.2.0",
@@ -22,7 +26,8 @@
     "lucide-react": "^0.292.0",
     "framer-motion": "^10.16.0",
     "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "tailwind-merge": "^2.0.0",
+    "zustand": "^4.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

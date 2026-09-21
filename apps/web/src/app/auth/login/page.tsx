@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getApiClient } from '@uumiees/api';
+import type { AuthResponse } from '@uumiees/types';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,19 +21,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
+      const api = getApiClient();
+      const data: AuthResponse = await api.login(formData);
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('sessionToken', data.sessionToken);
@@ -39,7 +30,9 @@ export default function LoginPage() {
 
       router.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const e = err as { response?: { data?: { error?: string } }; message?: string };
+      const msg = e?.response?.data?.error || e?.message || 'Login failed';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }

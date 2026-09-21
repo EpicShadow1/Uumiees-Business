@@ -1,39 +1,46 @@
-# Stage 1: Build
+# syntax=docker/dockerfile:1
 FROM node:18-alpine AS builder
 
-WORKDIR /app
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-# Copy package files
-COPY package*.json ./
+WORKDIR /workspace
 
-# Install dependencies
-RUN npm ci --only=production
+# Copy workspace manifests needed for dependency resolution
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/backend/package.json ./apps/backend/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY apps/mobile/package.json ./apps/mobile/package.json
+COPY packages ./packages
 
-# Copy source code
+# Install workspace dependencies using pnpm (repo standard)
+RUN pnpm install --frozen-lockfile
+
+# Copy the full source tree and build the backend package
 COPY . .
+RUN pnpm --filter @uumiees/backend build
 
-# Build TypeScript
-RUN npm run build
+FROM node:18-alpine AS runner
 
-# Stage 2: Run
-FROM node:18-alpine
+ENV NODE_ENV=production
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-WORKDIR /app
+WORKDIR /workspace
 
-# Copy built files and dependencies
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY package*.json ./
+# Copy the workspace and installed node_modules from the builder
+COPY --from=builder /workspace ./
+
+WORKDIR /workspace/apps/backend
 
 # Create logs directory
 RUN mkdir -p logs
 
-# Expose port
 EXPOSE 3000
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start command
 CMD ["node", "dist/index.js"]

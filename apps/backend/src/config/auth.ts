@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-const JWT_SECRET = process.env.JWT_SECRET ||
-'my-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-me';
 
 export interface JWTPayload {
   userId: number;

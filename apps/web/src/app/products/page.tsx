@@ -1,72 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  compare_price?: number | null;
-  stock: number;
-  is_active: boolean;
-  is_featured: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { getApiClient } from '@uumiees/api';
+import type { Product } from '@uumiees/types';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const initClient = () => {
+    const api = getApiClient();
+    const token = localStorage.getItem('token');
+    if (token) api.setToken(token);
+    return api;
+  };
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/products', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-
-      const data = await response.json();
-      setProducts(data.products || []);
+      const api = initClient();
+      const data = await api.getProducts();
+      setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const addToCart = async (productId: number) => {
+  useEffect(() => {
+    void fetchProducts();
+  }, [fetchProducts]);
+
+  const addToCart = async (product: Product) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/cart/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add to cart');
-      }
-
+      const api = initClient();
+      const sessionId = localStorage.getItem('sessionToken') || undefined;
+      await api.addToCart(
+        { product_id: product.id, quantity: 1, price: product.price },
+        sessionId
+      );
       alert('Added to cart!');
     } catch (err) {
       alert('Failed to add to cart');
@@ -75,22 +50,8 @@ export default function ProductsPage() {
 
   const addToWishlist = async (productId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/wishlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          product_id: productId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add to wishlist');
-      }
-
+      const api = initClient();
+      await api.addToWishlist({ product_id: productId });
       alert('Added to wishlist!');
     } catch (err) {
       alert('Failed to add to wishlist');
@@ -200,7 +161,7 @@ export default function ProductsPage() {
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => addToCart(product.id)}
+                      onClick={() => addToCart(product)}
                       disabled={product.stock === 0}
                       className="flex-1 flex items-center justify-center px-3 py-2 bg-[#173B8F] text-white rounded-lg hover:bg-[#081A3A] transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >

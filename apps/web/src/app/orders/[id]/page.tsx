@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Package, Truck, Clock, ArrowRight, Home } from 'lucide-react';
 
@@ -50,18 +50,11 @@ interface Order {
 
 export default function OrderConfirmationPage() {
   const params = useParams();
-  const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (params.id) {
-      fetchOrderDetails();
-    }
-  }, [params.id]);
-
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3000/api/orders/${params.id}`, {
@@ -81,7 +74,13 @@ export default function OrderConfirmationPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    if (params.id) {
+      void fetchOrderDetails();
+    }
+  }, [fetchOrderDetails, params.id]);
 
   if (loading) {
     return (

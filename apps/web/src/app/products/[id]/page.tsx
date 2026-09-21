@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { ShoppingCart, Heart, Star, Minus, Plus, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -43,7 +43,6 @@ interface ProductVariant {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [images, setImages] = useState<ProductImage[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>([]);
@@ -52,13 +51,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (params.id) {
-      fetchProductDetails();
-    }
-  }, [params.id]);
-
-  const fetchProductDetails = async () => {
+  const fetchProductDetails = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3000/api/products/${params.id}`, {
@@ -84,7 +77,13 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    if (params.id) {
+      void fetchProductDetails();
+    }
+  }, [fetchProductDetails, params.id]);
 
   const addToCart = async () => {
     try {

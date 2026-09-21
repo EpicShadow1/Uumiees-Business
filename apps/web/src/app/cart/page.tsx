@@ -1,134 +1,64 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
-
-interface CartItem {
-  id: number;
-  cart_id: number;
-  product_id: number;
-  variant_id: number | null;
-  quantity: number;
-  price: number;
-  created_at: string;
-  updated_at: string;
-  product?: {
-    id: number;
-    name: string;
-    image_url: string | null;
-  };
-  variant?: {
-    id: number;
-    name: string;
-    sku: string;
-  } | null;
-}
-
-interface ShoppingCart {
-  id: number;
-  user_id: number | null;
-  session_id: string;
-  created_at: string;
-  updated_at: string;
-  items?: CartItem[];
-}
+import { useRouter } from 'next/navigation';
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Package } from 'lucide-react';
+import type { ShoppingCart } from '@uumiees/types';
+import { Button, EmptyState, PriceTag, Card, CardContent, Alert } from '@uumiees/ui';
+import { formatCurrency } from '@uumiees/utils';
+import { tax } from '@uumiees/config';
+import { useCart, useUpdateCartItem, useRemoveCartItem } from '@/hooks/useQueries';
+import { toast } from '@/stores/useToastStore';
+import { ConfirmDialog } from '@/components/Modal';
+import { CartSkeleton } from '@/components/Skeleton';
 
 export default function CartPage() {
-  const [cart, setCart] = useState<ShoppingCart | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [updating, setUpdating] = useState<number | null>(null);
+  const router = useRouter();
+  const { data: cartResp, isLoading, error, refetch } = useCart();
+  const updateMut = useUpdateCartItem();
+  const removeMut = useRemoveCartItem();
+  const [pendingRemoveId, setPendingRemoveId] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  const cart: ShoppingCart | null = cartResp ?? null;
+  const items = cart?.items ?? [];
+  const subtotal = items.reduce((sum, it) => sum + (it.price ?? 0) * (it.quantity ?? 0), 0);
+  const shipping = subtotal > 0 ? (subtotal >= tax.freeShippingThreshold ? 0 : tax.shippingFlatRate) : 0;
+  const taxAmount = subtotal * tax.defaultRate;
+  const total = subtotal + shipping + taxAmount;
 
-  const fetchCart = async () => {
+  const updateQty = async (itemId: number, qty: number) => {
+    if (qty < 1) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/cart', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch cart');
-      }
-
-      const data = await response.json();
-      setCart(data.cart);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
+      await updateMut.mutateAsync({ id: itemId, quantity: qty });
+      toast({ variant: 'success', title: 'Cart updated' });
+    } catch {
+      toast({ variant: 'error', title: 'Could not update quantity' });
     }
   };
 
-  const updateQuantity = async (itemId: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
+  const confirmRemove = (itemId: number) => setPendingRemoveId(itemId);
 
-    setUpdating(itemId);
+  const doRemove = async () => {
+    if (pendingRemoveId == null) return;
+    const id = pendingRemoveId;
+    setPendingRemoveId(null);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/cart/items/${itemId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ quantity: newQuantity }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update quantity');
-      }
-
-      await fetchCart();
-    } catch (err) {
-      alert('Failed to update quantity');
-    } finally {
-      setUpdating(null);
+      await removeMut.mutateAsync(id);
+      toast({ variant: 'success', title: 'Item removed from cart' });
+    } catch {
+      toast({ variant: 'error', title: 'Could not remove item' });
     }
   };
 
-  const removeItem = async (itemId: number) => {
-    if (!confirm('Are you sure you want to remove this item?')) return;
-
-    setUpdating(itemId);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/cart/items/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to remove item');
-      }
-
-      await fetchCart();
-    } catch (err) {
-      alert('Failed to remove item');
-    } finally {
-      setUpdating(null);
-    }
-  };
-
-  const subtotal = cart?.items?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
-  const shipping = subtotal > 0 ? 10 : 0;
-  const tax = subtotal * 0.1;
-  const total = subtotal + shipping + tax;
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FFFDF7]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#173B8F] mx-auto"></div>
-          <p className="mt-4 text-[#171A21]">Loading cart...</p>
+      <div className="min-h-screen bg-[#FFFDF7] py-12 px-4">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-[#171A21] mb-8" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Shopping Cart
+          </h1>
+          <CartSkeleton />
         </div>
       </div>
     );
@@ -136,36 +66,37 @@ export default function CartPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FFFDF7] px-4">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={fetchCart}
-            className="px-6 py-2 bg-[#173B8F] text-white rounded-lg hover:bg-[#081A3A] transition"
-          >
-            Retry
-          </button>
+      <div className="min-h-screen flex items-center justify-center bg-[#FFFDF7] px-4 py-12">
+        <div className="max-w-md w-full text-center">
+          <Alert variant="error" title="Could not load cart" className="mb-6">
+            {error instanceof Error ? error.message : 'An unexpected error occurred.'}
+          </Alert>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={() => void refetch()} leftIcon={<ArrowRight size={16} className="rotate-180" />}>
+              Retry
+            </Button>
+            <Link href="/products">
+              <Button variant="outline">Browse Products</Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!cart?.items || cart.items.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="min-h-screen bg-[#FFFDF7] py-12 px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
-          <h1 className="text-3xl font-bold text-[#171A21] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Your Cart is Empty
-          </h1>
-          <p className="text-gray-600 mb-6">Looks like you haven't added anything to your cart yet.</p>
-          <Link
-            href="/products"
-            className="inline-flex items-center px-6 py-3 bg-[#173B8F] text-white rounded-lg font-medium hover:bg-[#081A3A] transition"
-          >
-            Start Shopping
-            <ArrowRight size={20} className="ml-2" />
-          </Link>
+        <div className="max-w-3xl mx-auto">
+          <EmptyState
+            icon={<ShoppingBag size={64} />}
+            title="Your Cart is Empty"
+            description="Looks like you haven't added anything to your cart yet."
+            action={{
+              label: 'Start Shopping',
+              onClick: () => router.push('/products'),
+            }}
+          />
         </div>
       </div>
     );
@@ -176,123 +107,160 @@ export default function CartPage() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-[#171A21] mb-8" style={{ fontFamily: 'Playfair Display, serif' }}>
           Shopping Cart
+          <span className="ml-3 text-lg font-medium text-[#6B7280]">
+            ({items.reduce((n, i) => n + (i.quantity ?? 0), 0)} items)
+          </span>
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cart.items.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-lg shadow-md p-4 flex items-center space-x-4"
-              >
-                {/* Product Image */}
-                <div className="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0">
-                  {item.product?.image_url ? (
-                    <img
-                      src={item.product.image_url}
-                      alt={item.product.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span className="text-2xl">📦</span>
+            {items.map((item) => {
+              const busy = updateMut.isPending || removeMut.isPending;
+              const price = item.price ?? 0;
+              const lineTotal = price * (item.quantity ?? 0);
+              return (
+                <Card key={item.id} className="overflow-hidden">
+                  <CardContent className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6">
+                    <Link href={`/products/${item.product_id}`} className="flex-shrink-0">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-[#F4F5F7] flex items-center justify-center">
+                        {item.product?.image_url ? (
+                          <img
+                            src={item.product.image_url}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Package size={28} className="text-[#9CA3AF]" />
+                        )}
+                      </div>
+                    </Link>
+
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/products/${item.product_id}`} className="block">
+                        <h3 className="font-semibold text-[#171A21] hover:text-[#173B8F] transition line-clamp-2">
+                          {item.product?.name ?? `Product #${item.product_id}`}
+                        </h3>
+                      </Link>
+                      {item.variant?.name && (
+                        <p className="text-sm text-[#6B7280] mt-1">Variant: {item.variant.name}</p>
+                      )}
+                      <div className="mt-2">
+                        <PriceTag price={price} />
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Product Details */}
-                <div className="flex-1">
-                  <Link
-                    href={`/products/${item.product_id}`}
-                    className="font-semibold text-[#171A21] hover:text-[#173B8F] transition"
-                  >
-                    {item.product?.name}
-                  </Link>
-                  {item.variant && (
-                    <p className="text-sm text-gray-500 mt-1">Variant: {item.variant.name}</p>
-                  )}
-                  <p className="text-lg font-bold text-[#173B8F] mt-2">${item.price.toFixed(2)}</p>
-                </div>
+                    <div className="flex sm:flex-col items-center sm:items-end gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => void updateQty(item.id, (item.quantity ?? 1) - 1)}
+                          disabled={busy || (item.quantity ?? 1) <= 1}
+                          aria-label="Decrease quantity"
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="w-8 text-center font-semibold tabular-nums">{item.quantity}</span>
+                        <button
+                          onClick={() => void updateQty(item.id, (item.quantity ?? 0) + 1)}
+                          disabled={busy}
+                          aria-label="Increase quantity"
+                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                      <div className="hidden sm:block text-right">
+                        <p className="font-bold text-[#173B8F] text-lg">{formatCurrency(lineTotal)}</p>
+                      </div>
+                      <button
+                        onClick={() => confirmRemove(item.id)}
+                        disabled={busy}
+                        aria-label="Remove item"
+                        className="p-2 text-[#C73E3A] hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
 
-                {/* Quantity Controls */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    disabled={updating === item.id || item.quantity <= 1}
-                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="w-8 text-center font-medium">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    disabled={updating === item.id}
-                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-50"
-                  >
-                    <Plus size={14} />
-                  </button>
-                </div>
-
-                {/* Remove Button */}
-                <button
-                  onClick={() => removeItem(item.id)}
-                  disabled={updating === item.id}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
-                >
-                  <Trash2 size={18} />
-                </button>
-
-                {/* Item Total */}
-                <div className="text-right">
-                  <p className="font-bold text-[#171A21]">${(item.price * item.quantity).toFixed(2)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-[#171A21] mb-4">Order Summary</h2>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-[#171A21]">
-                  <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-[#171A21]">
-                  <span>Shipping</span>
-                  <span>${shipping.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-[#171A21]">
-                  <span>Tax (10%)</span>
-                  <span>${tax.toFixed(2)}</span>
-                </div>
-                <hr />
-                <div className="flex justify-between text-xl font-bold text-[#173B8F]">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <Link
-                href="/checkout"
-                className="block w-full text-center px-6 py-3 bg-[#173B8F] text-white rounded-lg font-medium hover:bg-[#081A3A] transition"
-              >
-                Proceed to Checkout
-              </Link>
-
-              <Link
-                href="/products"
-                className="block w-full text-center mt-3 text-[#173B8F] hover:underline"
-              >
-                Continue Shopping
+            <div className="flex justify-between items-center pt-2">
+              <Link href="/products" className="text-[#173B8F] hover:underline font-medium text-sm">
+                &larr; Continue Shopping
               </Link>
             </div>
           </div>
+
+          <div className="lg:col-span-1">
+            <Card>
+              <CardContent className="p-6 sticky top-24">
+                <h2 className="text-xl font-bold text-[#171A21] mb-5">Order Summary</h2>
+
+                <div className="space-y-3 text-[#171A21]">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="font-medium tabular-nums">{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Shipping</span>
+                    <span className="font-medium tabular-nums">
+                      {shipping === 0 && subtotal > 0 ? (
+                        <span className="text-[#1F8A5B]">FREE</span>
+                      ) : (
+                        formatCurrency(shipping)
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax ({Math.round(tax.defaultRate * 100)}%)</span>
+                    <span className="font-medium tabular-nums">{formatCurrency(taxAmount)}</span>
+                  </div>
+                  <div className="h-px bg-gray-200 my-2" />
+                  <div className="flex justify-between text-xl font-bold text-[#173B8F]">
+                    <span>Total</span>
+                    <span className="tabular-nums">{formatCurrency(total)}</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  <Button
+                    size="lg"
+                    fullWidth
+                    leftIcon={<ArrowRight size={18} />}
+                    onClick={() => router.push('/checkout')}
+                  >
+                    Proceed to Checkout
+                  </Button>
+                  <Link href="/products" className="block">
+                    <Button variant="outline" fullWidth>
+                      Continue Shopping
+                    </Button>
+                  </Link>
+                </div>
+
+                {shipping > 0 && (
+                  <p className="mt-5 text-xs text-[#6B7280] text-center">
+                    Add {formatCurrency(tax.freeShippingThreshold - subtotal)} more for free shipping!
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingRemoveId != null}
+        onConfirm={() => void doRemove()}
+        onCancel={() => setPendingRemoveId(null)}
+        title="Remove item from cart?"
+        description="This item will be removed from your shopping cart. You can add it back later from the product page."
+        confirmLabel="Remove"
+        cancelLabel="Keep"
+        danger
+      />
     </div>
   );
 }

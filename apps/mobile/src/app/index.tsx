@@ -1,15 +1,12 @@
-import { View, Text, StyleSheet, TouchableOpacity, useEffect } from 'react-native';
+import { useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Index() {
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('token');
       if (token) {
@@ -21,7 +18,11 @@ export default function Index() {
       console.error('Auth check failed:', error);
       router.replace('/auth/login');
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    void checkAuth();
+  }, [checkAuth]);
 
   return (
     <View style={styles.container}>

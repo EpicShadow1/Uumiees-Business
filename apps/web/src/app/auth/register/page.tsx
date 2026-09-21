@@ -3,55 +3,74 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Button, Input, Alert, Card, CardContent } from '@uumiees/ui';
+import { authSchemas } from '@uumiees/validation';
+import { initApi } from '@/lib/api';
+import { toast } from '@/stores/useToastStore';
+import type { AuthResponse } from '@uumiees/types';
+
+const registerSchema = authSchemas.register
+  .extend({
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
-    setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
+    setServerError('');
     try {
-      const response = await fetch('http://localhost:3000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
+      const api = initApi();
+      const result: AuthResponse = await api.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       });
 
-      const data = await response.json();
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('sessionToken', result.sessionToken);
+      localStorage.setItem('user', JSON.stringify(result.user));
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('sessionToken', data.sessionToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
+      toast({
+        variant: 'success',
+        title: 'Welcome to Uumiees!',
+        description: `Your account has been created, ${result.user.name.split(' ')[0]}.`,
+      });
       router.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const e = err as { response?: { data?: { error?: string } }; message?: string };
+      const msg = e?.response?.data?.error || e?.message || 'Registration failed';
+      setServerError(msg);
+      toast({ variant: 'error', title: 'Could not create account', description: msg });
     } finally {
       setIsLoading(false);
     }
@@ -67,92 +86,87 @@ export default function RegisterPage() {
           <p className="text-[#171A21]">Join Uumiees today</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
-            </div>
-          )}
+        <Card>
+          <CardContent className="p-8">
+            {serverError && (
+              <Alert variant="error" title="Registration failed" className="mb-6" dismissible onDismiss={() => setServerError('')}>
+                {serverError}
+              </Alert>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-[#171A21] mb-2">
-                Full Name
-              </label>
-              <input
-                id="name"
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <Input
+                label="Full Name"
                 type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#173B8F] focus:border-transparent outline-none transition"
                 placeholder="John Doe"
+                leftIcon={<User size={18} />}
+                error={errors.name?.message}
+                {...register('name')}
               />
-            </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#171A21] mb-2">
-                Email Address
-              </label>
-              <input
-                id="email"
+              <Input
+                label="Email Address"
                 type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#173B8F] focus:border-transparent outline-none transition"
                 placeholder="you@example.com"
+                leftIcon={<Mail size={18} />}
+                error={errors.email?.message}
+                {...register('email')}
               />
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#171A21] mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#173B8F] focus:border-transparent outline-none transition"
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
+                leftIcon={<Lock size={18} />}
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="text-[#6B7280] hover:text-[#173B8F] transition"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                }
+                error={errors.password?.message}
+                helperText="At least 8 characters"
+                {...register('password')}
               />
-            </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#171A21] mb-2">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#173B8F] focus:border-transparent outline-none transition"
+              <Input
+                label="Confirm Password"
+                type={showConfirm ? 'text' : 'password'}
                 placeholder="••••••••"
+                leftIcon={<Lock size={18} />}
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((s) => !s)}
+                    aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                    className="text-[#6B7280] hover:text-[#173B8F] transition"
+                  >
+                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                }
+                error={errors.confirmPassword?.message}
+                {...register('confirmPassword')}
               />
+
+              <Button type="submit" loading={isLoading} fullWidth size="lg">
+                {isLoading ? 'Creating account...' : 'Create Account'}
+              </Button>
+            </form>
+
+            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+              <p className="text-[#171A21]">
+                Already have an account?{' '}
+                <Link href="/auth/login" className="text-[#173B8F] hover:underline font-medium">
+                  Sign in
+                </Link>
+              </p>
             </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-[#173B8F] text-white py-3 rounded-lg font-medium hover:bg-[#081A3A] transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Creating account...' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-[#171A21]">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="text-[#173B8F] hover:underline font-medium">
-                Sign in
-              </Link>
-            </p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

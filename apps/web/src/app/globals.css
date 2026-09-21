@@ -14,7 +14,7 @@
   }
 
   * {
-    @apply border-border;
+    border-color: rgba(23, 26, 33, 0.08);
   }
 
   body {

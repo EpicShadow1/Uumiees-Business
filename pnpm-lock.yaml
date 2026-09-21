@@ -102,6 +102,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.3.0
         version: 3.10.0(react-hook-form@7.88.0)
+      '@react-native-async-storage/async-storage':
+        specifier: 1.19.3
+        version: 1.19.3(react-native@0.72.0)
       '@tanstack/react-query':
         specifier: ^5.0.0
         version: 5.103.2(react@18.2.0)
@@ -120,9 +123,9 @@ importers:
       expo-status-bar:
         specifier: ~1.6.0
         version: 1.6.0
-      lucide-react:
+      lucide-react-native:
         specifier: ^0.292.0
-        version: 0.292.0(react@18.2.0)
+        version: 0.292.0(prop-types@15.8.1)(react-native-svg@13.9.0)(react-native@0.72.0)(react@18.2.0)
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -169,9 +172,21 @@ importers:
       '@uumiees/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@uumiees/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@uumiees/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@uumiees/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@uumiees/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@uumiees/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       clsx:
         specifier: ^2.0.0
         version: 2.1.1
@@ -199,6 +214,9 @@ importers:
       zod:
         specifier: ^3.22.0
         version: 3.25.76
+      zustand:
+        specifier: ^4.4.0
+        version: 4.5.7(@types/react@18.2.79)(react@18.2.0)
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -241,7 +259,79 @@ importers:
         specifier: ^5.2.0
         version: 5.9.3
 
+  packages/config:
+    devDependencies:
+      typescript:
+        specifier: ^5.2.0
+        version: 5.9.3
+
   packages/types:
+    devDependencies:
+      typescript:
+        specifier: ^5.2.0
+        version: 5.9.3
+
+  packages/ui:
+    dependencies:
+      '@uumiees/config':
+        specifier: workspace:*
+        version: link:../config
+      '@uumiees/types':
+        specifier: workspace:*
+        version: link:../types
+      '@uumiees/utils':
+        specifier: workspace:*
+        version: link:../utils
+      clsx:
+        specifier: ^2.0.0
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.292.0
+        version: 0.292.0(react@18.2.0)
+      next:
+        specifier: ^14.0.0
+        version: 14.2.35(react-dom@18.3.1)(react@18.2.0)
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.2.0)
+      tailwind-merge:
+        specifier: ^2.0.0
+        version: 2.6.1
+    devDependencies:
+      '@types/react':
+        specifier: ^18.2.0
+        version: 18.2.79
+      '@types/react-dom':
+        specifier: ^18.2.0
+        version: 18.3.7(@types/react@18.2.79)
+      typescript:
+        specifier: ^5.2.0
+        version: 5.9.3
+
+  packages/utils:
+    dependencies:
+      clsx:
+        specifier: ^2.0.0
+        version: 2.1.1
+      tailwind-merge:
+        specifier: ^2.0.0
+        version: 2.6.1
+    devDependencies:
+      typescript:
+        specifier: ^5.2.0
+        version: 5.9.3
+
+  packages/validation:
+    dependencies:
+      '@uumiees/types':
+        specifier: workspace:*
+        version: link:../types
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
     devDependencies:
       typescript:
         specifier: ^5.2.0
@@ -1741,7 +1831,7 @@ packages:
 
   /@expo/bunyan@4.0.1:
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
     dependencies:
       uuid: 8.3.2
     dev: false
@@ -2518,6 +2608,15 @@ packages:
       '@babel/runtime': 7.29.7
       '@radix-ui/react-compose-refs': 1.0.0(react@18.2.0)
       react: 18.2.0
+    dev: false
+
+  /@react-native-async-storage/async-storage@1.19.3(react-native@0.72.0):
+    resolution: {integrity: sha512-CwGfoHCWdPOTPS+2fW6YRE1fFBpT9++ahLEroX5hkgwyoQ+TkmjOaUxixdEIoVua9Pz5EF2pGOIJzqOTMWfBlA==}
+    peerDependencies:
+      react-native: ^0.0.0-0 || 0.60 - 0.72 || 1000.0.0
+    dependencies:
+      merge-options: 3.0.4
+      react-native: 0.72.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7)(react@18.2.0)
     dev: false
 
   /@react-native-community/cli-clean@11.3.2:
@@ -6751,6 +6850,11 @@ packages:
     resolution: {integrity: sha512-Fd4gABb+ycGAmKou8eMftCupSir5lRxqf4aD/vd0cD2qc4HL07OjCeuHMr8Ro4CoMaeCKDB0/ECBOVWjTwUvPQ==}
     engines: {node: '>=8'}
 
+  /is-plain-obj@2.1.0:
+    resolution: {integrity: sha512-YWnfyRwxL/+SsrWYfOpUtz5b3YD+nyfkHvjbcanzk8zgyO4ASD67uVMRt8k5bM4lLMDnXfriRhOpemw+NfT1eA==}
+    engines: {node: '>=8'}
+    dev: false
+
   /is-plain-object@2.0.4:
     resolution: {integrity: sha512-h5PpgXkWitc38BBMYawTYMWJHFZJVnBquFE57xFpjB8pJFiF6gZ+bU+WyI/yqXiFR5mdLsgYNaPe8uao6Uv9Og==}
     engines: {node: '>=0.10.0'}
@@ -7393,6 +7497,20 @@ packages:
       yallist: 4.0.0
     dev: false
 
+  /lucide-react-native@0.292.0(prop-types@15.8.1)(react-native-svg@13.9.0)(react-native@0.72.0)(react@18.2.0):
+    resolution: {integrity: sha512-pCRNPd1Xbslf6/0okSrw6tRuhMwdCJ9LvPQToL28W+KeZc60003aTB8BNUZjxvLErr7f6o+EO6OUC9oB0al5wg==}
+    peerDependencies:
+      prop-types: ^15.7.2
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0
+      react-native: '*'
+      react-native-svg: ^12.0.0 || ^13.0.0
+    dependencies:
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-native: 0.72.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7)(react@18.2.0)
+      react-native-svg: 13.9.0(react-native@0.72.0)(react@18.2.0)
+    dev: false
+
   /lucide-react@0.292.0(react@18.2.0):
     resolution: {integrity: sha512-rRgUkpEHWpa5VCT66YscInCQmQuPCB1RFRzkkxMxg4b+jaL0V12E3riWWR2Sh5OIiUhCwGW/ZExuEO4Az32E6Q==}
     peerDependencies:
@@ -7478,6 +7596,13 @@ packages:
   /merge-descriptors@2.0.0:
     resolution: {integrity: sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==}
     engines: {node: '>=18'}
+    dev: false
+
+  /merge-options@3.0.4:
+    resolution: {integrity: sha512-2Sug1+knBjkaMsMgf1ctR1Ujx+Ayku4EdJN4Z+C2+JzoeF7A3OZ9KM2GY0CpQS51NR61LTurMJrRKPhSs3ZRTQ==}
+    engines: {node: '>=10'}
+    dependencies:
+      is-plain-obj: 2.1.0
     dev: false
 
   /merge-stream@2.0.0:
@@ -10982,4 +11107,24 @@ packages:
 
   /zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+    dev: false
+
+  /zustand@4.5.7(@types/react@18.2.79)(react@18.2.0):
+    resolution: {integrity: sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw==}
+    engines: {node: '>=12.7.0'}
+    peerDependencies:
+      '@types/react': '>=16.8'
+      immer: '>=9.0.6'
+      react: '>=16.8'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+    dependencies:
+      '@types/react': 18.2.79
+      react: 18.2.0
+      use-sync-external-store: 1.7.0(react@18.2.0)
     dev: false
