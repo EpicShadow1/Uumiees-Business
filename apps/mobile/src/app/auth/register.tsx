@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   form: {
-    spaceY: 16,
+    gap: 16,
   },
   input: {
     backgroundColor: '#FFFFFF',
