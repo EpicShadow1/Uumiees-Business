@@ -4,16 +4,16 @@ import { CreateUser, UpdateUser, UserResponse } from '../models';
 
 class UserService {
   async create(userData: CreateUser): Promise<UserResponse> {
-    const { email, password, name } = userData;
+    const { email, password, name, phone, address, city, state, postal_code, country } = userData;
 
     return executeWithRetry(async () => {
       const hashedPassword = await hashPassword(password);
 
       const result = await pool.query(
-        `INSERT INTO users (email, password_hash, name, created_at, updated_at)
-         VALUES ($1, $2, $3, NOW(), NOW())
-         RETURNING id, email, name, created_at, updated_at`,
-        [email, hashedPassword, name]
+        `INSERT INTO users (email, password_hash, name, phone, address, city, state, postal_code, country, role, is_active, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'customer', true, NOW(), NOW())
+         RETURNING id, email, name, phone, address, city, state, postal_code, country, role, is_active, created_at, updated_at`,
+        [email, hashedPassword, name, phone, address, city, state, postal_code, country]
       );
 
       return result.rows[0];
@@ -23,7 +23,7 @@ class UserService {
   async findById(id: number): Promise<UserResponse | null> {
     return executeWithRetry(async () => {
       const result = await pool.query(
-        `SELECT id, email, name, created_at, updated_at 
+        `SELECT id, email, name, phone, address, city, state, postal_code, country, role, is_active, created_at, updated_at 
          FROM users WHERE id = $1`,
         [id]
       );
@@ -35,7 +35,7 @@ class UserService {
   async findByEmail(email: string): Promise<UserResponse | null> {
     return executeWithRetry(async () => {
       const result = await pool.query(
-        `SELECT id, email, password_hash, name, created_at, updated_at 
+        `SELECT id, email, password_hash, name, phone, address, city, state, postal_code, country, role, is_active, created_at, updated_at 
          FROM users WHERE email = $1`,
         [email]
       );
@@ -45,12 +45,11 @@ class UserService {
   }
 
   async update(id: number, userData: UpdateUser): Promise<UserResponse | null> {
-    const { name, email } = userData;
+    const { name, email, phone, address, city, state, postal_code, country } = userData;
 
     return executeWithRetry(async () => {
-      // Build dynamic update query
       const updates: string[] = [];
-      const values: (string | number)[] = [];
+      const values: (string | number | null)[] = [];
       let paramCount = 1;
 
       if (name) {
@@ -65,18 +64,54 @@ class UserService {
         paramCount++;
       }
 
+      if (phone !== undefined) {
+        updates.push(`phone = $${paramCount}`);
+        values.push(phone);
+        paramCount++;
+      }
+
+      if (address !== undefined) {
+        updates.push(`address = $${paramCount}`);
+        values.push(address);
+        paramCount++;
+      }
+
+      if (city !== undefined) {
+        updates.push(`city = $${paramCount}`);
+        values.push(city);
+        paramCount++;
+      }
+
+      if (state !== undefined) {
+        updates.push(`state = $${paramCount}`);
+        values.push(state);
+        paramCount++;
+      }
+
+      if (postal_code !== undefined) {
+        updates.push(`postal_code = $${paramCount}`);
+        values.push(postal_code);
+        paramCount++;
+      }
+
+      if (country !== undefined) {
+        updates.push(`country = $${paramCount}`);
+        values.push(country);
+        paramCount++;
+      }
+
       if (updates.length === 0) {
         return this.findById(id);
       }
 
-      values.push(id); // Add id for WHERE clause
+      values.push(id);
       updates.push(`updated_at = NOW()`);
 
       const query = `
         UPDATE users
         SET ${updates.join(', ')}
         WHERE id = $${paramCount}
-        RETURNING id, email, name, created_at, updated_at
+        RETURNING id, email, name, phone, address, city, state, postal_code, country, role, is_active, created_at, updated_at
       `;
 
       const result = await pool.query(query, values);
@@ -96,9 +131,8 @@ class UserService {
   }
 
   async verifyPassword(email: string, password: string): Promise<UserResponse | null> {
-    // Get user with password_hash
     const result = await pool.query(
-      `SELECT id, email, password_hash, name, created_at, updated_at 
+      `SELECT id, email, password_hash, name, phone, address, city, state, postal_code, country, role, is_active, created_at, updated_at 
        FROM users WHERE email = $1`,
       [email]
     );
@@ -119,6 +153,14 @@ class UserService {
       id: user.id,
       email: user.email,
       name: user.name,
+      phone: user.phone,
+      address: user.address,
+      city: user.city,
+      state: user.state,
+      postal_code: user.postal_code,
+      country: user.country,
+      role: user.role,
+      is_active: user.is_active,
       created_at: user.created_at,
       updated_at: user.updated_at
     };
@@ -127,7 +169,7 @@ class UserService {
   async getAll(limit = 100, offset = 0): Promise<UserResponse[]> {
     return executeWithRetry(async () => {
       const result = await pool.query(
-        `SELECT id, email, name, created_at, updated_at 
+        `SELECT id, email, name, phone, address, city, state, postal_code, country, role, is_active, created_at, updated_at 
          FROM users 
          ORDER BY created_at DESC 
          LIMIT $1 OFFSET $2`,

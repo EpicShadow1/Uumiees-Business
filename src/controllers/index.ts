@@ -1,3 +1,12 @@
 export { userController } from './userController';
 export { productController } from './productController';
 export { orderController } from './orderController';
+export { categoryController } from './categoryController';
+export { shoppingCartController } from './shoppingCartController';
+export { productImageController } from './productImageController';
+export { productVariantController } from './productVariantController';
+export { productReviewController } from './productReviewController';
+export { wishlistController } from './wishlistController';
+export { orderTrackingController } from './orderTrackingController';
+export { discountController } from './discountController';
+export { supportTicketController } from './supportTicketController';

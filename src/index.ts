@@ -14,6 +14,15 @@ import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
 import userRoutes from './routes/users';
+import categoryRoutes from './routes/categories';
+import cartRoutes from './routes/cart';
+import productImageRoutes from './routes/productImages';
+import productVariantRoutes from './routes/productVariants';
+import wishlistRoutes from './routes/wishlist';
+import reviewRoutes from './routes/reviews';
+import trackingRoutes from './routes/tracking';
+import discountRoutes from './routes/discounts';
+import supportRoutes from './routes/support';
 
 
 const app = express();
@@ -68,6 +77,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/product-images', productImageRoutes);
+app.use('/api/product-variants', productVariantRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/tracking', trackingRoutes);
+app.use('/api/discounts', discountRoutes);
+app.use('/api/support', supportRoutes);
 
 // Metrics endpoint
 app.get('/metrics', metricsEndpoint);

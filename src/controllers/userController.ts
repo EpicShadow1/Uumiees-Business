@@ -7,7 +7,7 @@ import { getQueryParam, getPathParam } from '../utils/helpers';
 class UserController {
   async register(req: Request, res: Response) {
     try {
-      const { email, password, name } = req.body;
+      const { email, password, name, phone, address, city, state, postal_code, country } = req.body;
 
       // Check if user already exists
       const existingUser = await userService.findByEmail(email);
@@ -16,7 +16,7 @@ class UserController {
       }
 
       // Create user
-      const user = await userService.create({ email, password, name });
+      const user = await userService.create({ email, password, name, phone, address, city, state, postal_code, country });
 
       // Generate JWT token
       const token = generateToken({ userId: user.id, email: user.email });
@@ -31,7 +31,13 @@ class UserController {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name
+          name: user.name,
+          phone: user.phone,
+          address: user.address,
+          city: user.city,
+          state: user.state,
+          postal_code: user.postal_code,
+          country: user.country
         }
       });
     } catch (error) {
@@ -96,9 +102,9 @@ class UserController {
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      const { name, email } = req.body;
+      const { name, email, phone, address, city, state, postal_code, country } = req.body;
 
-      const user = await userService.update(req.user.userId, { name, email });
+      const user = await userService.update(req.user.userId, { name, email, phone, address, city, state, postal_code, country });
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
