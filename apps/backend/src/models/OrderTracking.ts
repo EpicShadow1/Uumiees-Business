@@ -1,27 +1,5 @@
-export interface OrderTracking {
-  id: number;
-  order_id: number;
-  status: string;
-  location: string;
-  description: string;
-  estimated_delivery: Date | null;
-  actual_delivery: Date | null;
-  created_at: Date;
-}
+import { OrderTracking as SharedOrderTracking, CreateOrderTracking as SharedCreateOrderTracking, UpdateOrderTracking as SharedUpdateOrderTracking } from '@uumiees/types';
 
-export interface CreateOrderTracking {
-  order_id: number;
-  status: string;
-  location?: string;
-  description?: string;
-  estimated_delivery?: Date;
-  actual_delivery?: Date;
-}
-
-export interface UpdateOrderTracking {
-  status?: string;
-  location?: string;
-  description?: string;
-  estimated_delivery?: Date;
-  actual_delivery?: Date;
-}
+export type OrderTracking = SharedOrderTracking;
+export type CreateOrderTracking = SharedCreateOrderTracking;
+export type UpdateOrderTracking = SharedUpdateOrderTracking;

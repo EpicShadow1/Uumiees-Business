@@ -130,8 +130,9 @@ export interface ProductVariant {
   name: string;
   sku: string;
   price: number;
+  compare_price?: number | null;
   stock: number;
-  options: string;
+  options?: VariantOption[];
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
@@ -139,21 +140,33 @@ export interface ProductVariant {
 
 export interface CreateProductVariant {
   product_id: number;
-  name: string;
-  sku: string;
-  price: number;
-  stock: number;
-  options: string;
+  sku?: string;
+  name?: string;
+  price?: number;
+  compare_price?: number;
+  stock?: number;
   is_active?: boolean;
+  options?: {
+    option_name: string;
+    option_value: string;
+  }[];
 }
 
 export interface UpdateProductVariant {
-  name?: string;
   sku?: string;
+  name?: string;
   price?: number;
+  compare_price?: number;
   stock?: number;
-  options?: string;
   is_active?: boolean;
+}
+
+export interface VariantOption {
+  id: number;
+  variant_id: number;
+  option_name: string;
+  option_value: string;
+  created_at: Date;
 }
 
 // Product Review Types (matching backend models/ProductReview.ts)
@@ -257,16 +270,22 @@ export interface CreateCartItem {
 }
 
 export interface UpdateCartItem {
-  quantity: number;
+  quantity?: number;
+  price?: number;
 }
 
 export interface ShoppingCart {
   id: number;
-  user_id?: number | null;
-  session_id?: string | null;
-  items: CartItem[];
+  user_id: number | null;
+  session_id: string;
   created_at: Date;
   updated_at: Date;
+  items?: CartItem[];
+}
+
+export interface CreateShoppingCart {
+  user_id?: number;
+  session_id?: string;
 }
 
 // Order Types (matching backend models/Order.ts)
@@ -335,8 +354,8 @@ export interface Order {
 export interface CreateOrder {
   user_id: number;
   items: { product_id: number; variant_id?: number; quantity: number }[];
-  shipping_address: string;
-  billing_address: string;
+  shipping_address?: string;
+  billing_address?: string;
   notes?: string;
   discount_code?: string;
 }
@@ -354,7 +373,7 @@ export interface WishlistItem {
     id: number;
     name: string;
     price: number;
-    image_url: string | null;
+    image_url: string | null | undefined;
   };
   variant?: {
     id: number;
@@ -368,6 +387,14 @@ export interface CreateWishlistItem {
   product_id: number;
   variant_id?: number;
 }
+
+export interface CreateWishlist {
+  user_id: number;
+  product_id: number;
+  variant_id?: number;
+}
+
+export type Wishlist = WishlistItem;
 
 // Discount Types (matching backend models/Discount.ts)
 export interface Discount {

@@ -4,7 +4,6 @@
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -13,10 +12,7 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "types": ["node"],
-    "noEmit": false,
-    "paths": {
-      "@uumiees/types": ["../../packages/types/src"]
-    }
+    "noEmit": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests", "**/*.spec.ts"]

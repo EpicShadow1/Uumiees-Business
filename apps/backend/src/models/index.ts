@@ -1,12 +1,12 @@
 export { User, CreateUser, UpdateUser, UserResponse } from './User';
 export { Product, CreateProduct, UpdateProduct, ProductResponse } from './Product';
-export { Order, OrderItem, CreateOrder, OrderResponse } from './Order';
+export { Order, CreateOrder, OrderResponse, OrderItem } from './Order';
 export { Category, CreateCategory, UpdateCategory, CategoryResponse } from './Category';
 export { ProductImage, CreateProductImage, UpdateProductImage } from './ProductImage';
 export { ProductVariant, CreateProductVariant, UpdateProductVariant, VariantOption } from './ProductVariant';
 export { ShoppingCart, CreateShoppingCart, CartItem, CreateCartItem, UpdateCartItem } from './ShoppingCart';
 export { ProductReview, CreateProductReview, UpdateProductReview } from './ProductReview';
-export { Wishlist, CreateWishlist } from './Wishlist';
+export { WishlistItem, CreateWishlistItem, CreateWishlist, Wishlist } from './Wishlist';
 export { OrderTracking, CreateOrderTracking, UpdateOrderTracking } from './OrderTracking';
 export { Discount, CreateDiscount, UpdateDiscount, DiscountUsage } from './Discount';
 export { SupportTicket, CreateSupportTicket, UpdateSupportTicket, TicketMessage, CreateTicketMessage } from './SupportTicket';

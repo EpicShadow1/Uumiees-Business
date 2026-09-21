@@ -24,8 +24,9 @@
     "react-hook-form": "^7.47.0",
     "zod": "^3.22.0",
     "@hookform/resolvers": "^3.3.0",
-    "lucide-react": "^0.292.0",
-    "react-native-svg": "13.9.0"
+    "lucide-react-native": "^0.292.0",
+    "react-native-svg": "13.9.0",
+    "@react-native-async-storage/async-storage": "1.19.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -1,24 +1,6 @@
-export interface Wishlist {
-  id: number;
-  user_id: number;
-  product_id: number;
-  variant_id: number | null;
-  created_at: Date;
-  product?: {
-    id: number;
-    name: string;
-    price: number;
-    image_url: string | null | undefined;
-  };
-  variant?: {
-    id: number;
-    name: string;
-    price: number;
-  } | null;
-}
+import { WishlistItem as SharedWishlistItem, CreateWishlistItem as SharedCreateWishlistItem, CreateWishlist as SharedCreateWishlist, Wishlist as SharedWishlist } from '@uumiees/types';
 
-export interface CreateWishlist {
-  user_id: number;
-  product_id: number;
-  variant_id?: number;
-}
+export type WishlistItem = SharedWishlistItem;
+export type CreateWishlistItem = SharedCreateWishlistItem;
+export type CreateWishlist = SharedCreateWishlist;
+export type Wishlist = SharedWishlist;
