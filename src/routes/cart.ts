@@ -12,6 +12,8 @@ router.delete('/items/:id', shoppingCartController.removeFromCart.bind(shoppingC
 router.delete('/', shoppingCartController.clearCart.bind(shoppingCartController));
 router.get('/total', shoppingCartController.getCartTotal.bind(shoppingCartController));
 router.get('/count', shoppingCartController.getCartItemCount.bind(shoppingCartController));
-router.post('/merge', shoppingCartController.mergeCarts.bind(shoppingCartController));
+
+// Protected routes (require authentication)
+router.post('/merge', authenticate, shoppingCartController.mergeCarts.bind(shoppingCartController));
 
 export default router;

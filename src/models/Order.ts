@@ -1,3 +1,5 @@
+import { OrderTracking } from './OrderTracking';
+
 export interface Order {
   id: number;
   user_id: number;
@@ -17,7 +19,7 @@ export interface Order {
   created_at: Date;
   updated_at: Date;
   items?: OrderItem[];
-  tracking?: any[];
+  tracking?: OrderTracking[];
 }
 
 export interface OrderItem {
@@ -72,5 +74,5 @@ export interface OrderResponse {
     product_name: string;
     variant_name: string;
   }[];
-  tracking?: any[];
+  tracking?: OrderTracking[];
 }

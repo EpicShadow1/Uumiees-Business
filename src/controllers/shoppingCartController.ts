@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { shoppingCartService } from '../services';
-import { getQueryParam, getPathParam } from '../utils/helpers';
+import { getPathParam } from '../utils/helpers';
 
 class ShoppingCartController {
   async getCart(req: Request, res: Response) {

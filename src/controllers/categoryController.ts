@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { categoryService } from '../services';
-import { getQueryParam, getPathParam } from '../utils/helpers';
+import { getPathParam } from '../utils/helpers';
 
 class CategoryController {
   async createCategory(req: Request, res: Response) {
