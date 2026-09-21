@@ -1,5 +1,5 @@
 import { pool, executeWithRetry } from '../config/database';
-import { Category, CreateCategory, UpdateCategory, CategoryResponse } from '../models';
+import { CreateCategory, UpdateCategory, CategoryResponse } from '../models';
 
 class CategoryService {
   async create(categoryData: CreateCategory): Promise<CategoryResponse> {

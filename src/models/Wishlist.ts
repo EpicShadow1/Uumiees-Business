@@ -8,7 +8,7 @@ export interface Wishlist {
     id: number;
     name: string;
     price: number;
-    image_url?: string;
+    image_url: string | null | undefined;
   };
   variant?: {
     id: number;

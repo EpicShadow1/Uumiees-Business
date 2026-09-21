@@ -1,5 +1,5 @@
 import { pool, executeWithRetry } from '../config/database';
-import { ShoppingCart, CreateShoppingCart, CartItem, CreateCartItem, UpdateCartItem } from '../models';
+import { ShoppingCart, CartItem, CreateCartItem, UpdateCartItem } from '../models';
 
 class ShoppingCartService {
   async getOrCreateCart(userId?: number, sessionId?: string): Promise<ShoppingCart> {
@@ -65,7 +65,7 @@ class ShoppingCartService {
 
       return {
         ...cart,
-        items: itemsResult.rows.map((item: any) => ({
+        items: itemsResult.rows.map((item: { id: number; cart_id: number; product_id: number; variant_id: number | null; quantity: number; price: number; created_at: Date; updated_at: Date; product_name: string; image_url: string | null; variant_name: string | null; variant_sku: string | null }) => ({
           id: item.id,
           cart_id: item.cart_id,
           product_id: item.product_id,
@@ -77,12 +77,12 @@ class ShoppingCartService {
           product: {
             id: item.product_id,
             name: item.product_name,
-            image_url: item.image_url
+            image_url: item.image_url || null
           },
           variant: item.variant_id ? {
             id: item.variant_id,
-            name: item.variant_name,
-            sku: item.variant_sku
+            name: item.variant_name || '',
+            sku: item.variant_sku || ''
           } : null
         }))
       };

@@ -53,7 +53,7 @@ class WishlistService {
         [userId]
       );
 
-      return result.rows.map((item: any) => ({
+      return result.rows.map((item: { id: number; user_id: number; product_id: number; variant_id: number | null; created_at: Date; product_name: string; product_price: number; image_url: string | null; variant_name: string | null; variant_price: number | null }) => ({
         id: item.id,
         user_id: item.user_id,
         product_id: item.product_id,
@@ -63,12 +63,12 @@ class WishlistService {
           id: item.product_id,
           name: item.product_name,
           price: item.variant_price || item.product_price,
-          image_url: item.image_url
+          image_url: item.image_url || null
         },
         variant: item.variant_id ? {
           id: item.variant_id,
-          name: item.variant_name,
-          price: item.variant_price
+          name: item.variant_name || '',
+          price: item.variant_price || 0
         } : null
       }));
     });

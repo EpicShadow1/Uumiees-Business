@@ -57,11 +57,11 @@ class SupportTicketService {
           id: ticket.assigned_to,
           name: ticket.assigned_to_name
         } : null,
-        messages: messagesResult.rows.map((msg: any) => ({
+        messages: messagesResult.rows.map((msg: { id: number; ticket_id: number; user_id: number | null; message: string; is_internal: boolean; created_at: Date; user_name: string | null }) => ({
           ...msg,
           user: msg.user_id ? {
             id: msg.user_id,
-            name: msg.user_name
+            name: msg.user_name || ''
           } : null
         }))
       };
@@ -72,7 +72,7 @@ class SupportTicketService {
     return executeWithRetry(async () => {
       const result = await pool.query(
         `SELECT st.id, st.user_id, st.subject, st.description, st.status, st.priority, st.category, st.assigned_to, st.created_at, st.updated_at,
-         u.name as user_name
+         u.name as user_name, u.email as user_email
          FROM support_tickets st
          LEFT JOIN users u ON st.user_id = u.id
          WHERE st.user_id = $1
@@ -81,11 +81,12 @@ class SupportTicketService {
         [userId, limit, offset]
       );
 
-      return result.rows.map((ticket: any) => ({
+      return result.rows.map((ticket: { id: number; user_id: number; subject: string; description: string; status: string; priority: string; category: string; assigned_to: number | null; created_at: Date; updated_at: Date; user_name: string; user_email: string }) => ({
         ...ticket,
         user: {
           id: ticket.user_id,
-          name: ticket.user_name
+          name: ticket.user_name,
+          email: ticket.user_email
         }
       }));
     });
@@ -103,7 +104,7 @@ class SupportTicketService {
            ORDER BY st.created_at DESC
            LIMIT $2 OFFSET $3`
         : `SELECT st.id, st.user_id, st.subject, st.description, st.status, st.priority, st.category, st.assigned_to, st.created_at, st.updated_at,
-           u.name as user_name, a.name as assigned_to_name
+           u.name as user_name, u.email as user_email, a.name as assigned_to_name
            FROM support_tickets st
            LEFT JOIN users u ON st.user_id = u.id
            LEFT JOIN users a ON st.assigned_to = a.id
@@ -113,15 +114,16 @@ class SupportTicketService {
       const params = status ? [status, limit, offset] : [limit, offset];
       const result = await pool.query(query, params);
 
-      return result.rows.map((ticket: any) => ({
+      return result.rows.map((ticket: { id: number; user_id: number; subject: string; description: string; status: string; priority: string; category: string; assigned_to: number | null; created_at: Date; updated_at: Date; user_name: string; user_email: string; assigned_to_name: string | null }) => ({
         ...ticket,
         user: {
           id: ticket.user_id,
-          name: ticket.user_name
+          name: ticket.user_name,
+          email: ticket.user_email
         },
         assigned_to_user: ticket.assigned_to ? {
           id: ticket.assigned_to,
-          name: ticket.assigned_to_name
+          name: ticket.assigned_to_name || ''
         } : null
       }));
     });

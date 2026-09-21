@@ -1,5 +1,5 @@
 import { pool, executeWithRetry } from '../config/database';
-import { Discount, CreateDiscount, UpdateDiscount, DiscountUsage } from '../models';
+import { Discount, CreateDiscount, UpdateDiscount } from '../models';
 
 class DiscountService {
   async create(discountData: CreateDiscount): Promise<Discount> {

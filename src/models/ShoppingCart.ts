@@ -24,7 +24,7 @@ export interface CartItem {
   product?: {
     id: number;
     name: string;
-    image_url?: string;
+    image_url: string | null;
   };
   variant?: {
     id: number;

@@ -11,7 +11,7 @@ export interface ProductReview {
   created_at: Date;
   updated_at: Date;
   user?: {
-    id: number;
+    id: number | null;
     name: string;
   };
 }

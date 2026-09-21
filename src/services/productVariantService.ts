@@ -1,5 +1,5 @@
 import { pool, executeWithRetry } from '../config/database';
-import { ProductVariant, CreateProductVariant, UpdateProductVariant, VariantOption } from '../models';
+import { ProductVariant, CreateProductVariant, UpdateProductVariant } from '../models';
 
 class ProductVariantService {
   async create(variantData: CreateProductVariant): Promise<ProductVariant> {

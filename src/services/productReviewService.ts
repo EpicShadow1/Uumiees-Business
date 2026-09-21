@@ -73,10 +73,10 @@ class ProductReviewService {
 
       const result = await pool.query(query, [productId, limit, offset]);
 
-      return result.rows.map((review: any) => ({
+      return result.rows.map((review: { id: number; product_id: number; user_id: number | null; rating: number; title: string; comment: string; is_verified_purchase: boolean; is_approved: boolean; helpful_count: number; created_at: Date; updated_at: Date; user_name: string }) => ({
         ...review,
         user: {
-          id: review.user_id,
+          id: review.user_id || 0,
           name: review.user_name
         }
       }));

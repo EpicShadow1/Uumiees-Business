@@ -12,12 +12,12 @@ export interface SupportTicket {
   user?: {
     id: number;
     name: string;
-    email: string;
+    email?: string;
   };
   assigned_to_user?: {
     id: number;
     name: string;
-  };
+  } | null;
   messages?: TicketMessage[];
 }
 
