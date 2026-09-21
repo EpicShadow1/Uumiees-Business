@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 173 59 143;
+    --color-secondary: 8 26 58;
+    --color-accent: 212 175 55;
+    --color-background: 255 253 247;
+    --color-surface: 244 245 247;
+    --color-text: 23 26 33;
+    --color-muted: 107 114 128;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-text;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
